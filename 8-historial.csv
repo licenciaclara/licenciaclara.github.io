@@ -1,0 +1,17 @@
+id,bloqueo_id,fecha,titulo,detalle,fuente,estado_resultante
+H-01,BLQ-MIX-2026-0087,12/06/2026,Bloqueo registrado por el juzgado,El juzgado registró el bloqueo de la licencia ante el Departamento de Tránsito.,Juzgado DEMO,gestion_ciudadano
+H-02,BLQ-GUA-2026-0311,03/07/2026,Bloqueo registrado por el juzgado,El juzgado registró el bloqueo de la licencia ante el Departamento de Tránsito. Hay una remisión asociada al expediente.,Juzgado DEMO,gestion_ciudadano
+H-03,BLQ-MIX-2026-0104,19/05/2026,Bloqueo registrado por el juzgado,El juzgado registró el bloqueo de la licencia ante el Departamento de Tránsito.,Juzgado DEMO,gestion_ciudadano
+H-04,BLQ-MIX-2026-0104,14/08/2026,Te presentaste al juzgado,Resolviste tu situación con la municipalidad y solicitaste la orden de desbloqueo.,Ciudadano,en_juzgado
+H-05,BLQ-MIX-2026-0104,26/08/2026,Solicitud recibida por el juzgado,El juzgado confirmó que la solicitud de orden de desbloqueo está en revisión.,Juzgado DEMO,en_juzgado
+H-06,BLQ-VNU-2026-0056,11/04/2026,Bloqueo registrado por el juzgado,El juzgado registró el bloqueo de la licencia ante el Departamento de Tránsito.,Juzgado DEMO,gestion_ciudadano
+H-07,BLQ-VNU-2026-0056,20/08/2026,Orden de desbloqueo emitida,El juzgado emitió el oficio original de desbloqueo y te lo entregó.,Juzgado DEMO,en_transito
+H-08,BLQ-VNU-2026-0056,02/09/2026,Solicitud presentada ante Tránsito,Presentaste la solicitud de desbloqueo con el oficio original. Quedó en revisión.,Ciudadano,en_transito
+H-09,BLQ-GUA-2025-0187,08/09/2025,Bloqueo registrado por el juzgado,El juzgado registró el bloqueo de la licencia ante el Departamento de Tránsito.,Juzgado DEMO,gestion_ciudadano
+H-10,BLQ-GUA-2025-0187,02/10/2025,Caso resuelto en el juzgado,Resolviste tu situación con la municipalidad.,Ciudadano,en_juzgado
+H-11,BLQ-GUA-2025-0187,24/10/2025,Orden de desbloqueo emitida y solicitud presentada,El juzgado emitió el oficio original y presentaste la solicitud ante el Departamento de Tránsito.,Ciudadano,en_transito
+H-12,BLQ-GUA-2025-0187,21/11/2025,Bloqueo levantado,El Departamento de Tránsito emitió la resolución y levantó el bloqueo.,Tránsito DEMO,levantado
+H-13,BLQ-VNU-2025-0042,17/02/2025,Bloqueo registrado por el juzgado,El juzgado registró el bloqueo de la licencia ante el Departamento de Tránsito.,Juzgado DEMO,gestion_ciudadano
+H-14,BLQ-VNU-2025-0042,19/03/2025,Caso resuelto en el juzgado,Resolviste tu situación con la municipalidad y obtuviste la orden de desbloqueo.,Ciudadano,en_transito
+H-15,BLQ-VNU-2025-0042,07/04/2025,Solicitud presentada ante Tránsito,Presentaste la solicitud de desbloqueo con el oficio original.,Ciudadano,en_transito
+H-16,BLQ-VNU-2025-0042,30/05/2025,Bloqueo levantado,El Departamento de Tránsito emitió la resolución y levantó el bloqueo.,Tránsito DEMO,levantado

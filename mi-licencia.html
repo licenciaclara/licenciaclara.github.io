@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estado de mi licencia · Licencia Clara</title>
+<link rel="stylesheet" href="css/estilos.css">
+<style>
+  .perfil { display: flex; align-items: center; gap: 14px; }
+  .avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--acento-suave); color: var(--acento);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 1.25rem; flex: 0 0 auto;
+  }
+  .perfil-nombre { font-weight: 600; font-size: 1.05rem; }
+  .muni-cabecera { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+  .muni-cuenta { font-size: .9rem; color: var(--tinta-suave); }
+</style>
+</head>
+<body>
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="barra">
+  <div class="barra-interna">
+    <a class="marca" href="mi-licencia.html">
+      <span class="marca-icono" aria-hidden="true">LC</span>
+      Licencia Clara
+    </a>
+    <div class="barra-derecha" id="barra-derecha"></div>
+  </div>
+</header>
+
+<main class="contenedor" id="contenido">
+  <div id="cargando" class="cargando">Cargando tu información…</div>
+  <div id="pagina" hidden></div>
+</main>
+
+<footer class="pie">
+  <div class="pie-interna">
+    <p class="sin-margen"><strong>Licencia Clara</strong> · Demostración con datos ficticios.
+    No es un servicio oficial.</p>
+    <ul>
+      <li><a href="orientacion.html">Orientación y fuentes</a></li>
+      <li><a href="index.html">Inicio</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var ciudadano = Sesion.exigir();
+  if (!ciudadano) return;
+
+  Ui.pintarBarraCiudadano(ciudadano);
+
+  var r = Datos.resumenDe(ciudadano.id);
+  var html = "";
+
+  html +=
+    '<a class="volver" href="index.html"><span aria-hidden="true">←</span> Inicio</a>' +
+    '<div class="mb">' + Ui.servicio("licencia") + '</div>';
+
+  /* ---------------------------------------------- 1. Mi licencia ------- */
+
+  html +=
+    '<div class="tarjeta">' +
+      '<div class="perfil">' +
+        '<span class="avatar" aria-hidden="true">' + Ui.esc(ciudadano.iniciales) + '</span>' +
+        '<div>' +
+          '<h1 class="sin-margen">Estado de tu licencia</h1>' +
+          '<p class="sin-margen perfil-nombre">' + Ui.esc(ciudadano.nombre) + '</p>' +
+          '<p class="sin-margen pequeno suave">DPI de demostración ' + Ui.esc(ciudadano.cui_demo) + '</p>' +
+        '</div>' +
+      '</div>' +
+      '<dl class="datos mt">' +
+        '<div><dt>Número de licencia</dt><dd>' + Ui.esc(r.licencia.numero) + '</dd></div>' +
+        '<div><dt>Tipo</dt><dd>' + Ui.esc(r.licencia.tipo) + '</dd></div>' +
+        '<div><dt>Vence el</dt><dd>' + Ui.esc(r.licencia.fecha_vencimiento) + '</dd></div>' +
+      '</dl>' +
+      '<p class="pequeno suave mt sin-margen">El vencimiento de tu licencia es una fecha aparte. No es un bloqueo.</p>' +
+      resumenNumeros(r) +
+    '</div>';
+
+  /* ------------------------------------------ 2. Municipalidades ------- */
+
+  var conActivos = r.grupos.filter(function (g) { return g.activos.length > 0; });
+
+  html += '<h2 class="mt2">Bloqueos de tu licencia, por municipalidad</h2>';
+
+  if (r.activos.length === 0) {
+    html +=
+      '<div class="vacio">' +
+        '<div class="vacio-icono" aria-hidden="true">✓</div>' +
+        '<p><strong>Tu licencia no tiene bloqueos activos en esta demostración.</strong></p>' +
+        '<p class="pequeno">Esto quiere decir que en los datos de esta demostración no aparece ningún bloqueo activo a tu nombre. No confirma que puedas renovar, conducir ni que estés solvente en todo el país.</p>' +
+      '</div>';
+  } else {
+    html += '<p class="suave pequeno">Aparecen primero las municipalidades donde tú tienes que hacer algo.</p>';
+    conActivos.forEach(function (g) { html += tarjetaMunicipalidad(g); });
+  }
+
+  /* -------------------------------------------------- 3. Resueltos ----- */
+
+  if (r.resueltos.length > 0) {
+    html +=
+      '<details class="desplegable mt2">' +
+        '<summary>Casos resueltos (' + r.resueltos.length + ')</summary>' +
+        '<div class="desplegable-cuerpo">' +
+          '<p class="pequeno suave">Estos bloqueos ya fueron levantados. Se conservan en tu historial.</p>' +
+          r.resueltos.map(filaCasoResuelto).join("") +
+        '</div>' +
+      '</details>';
+  }
+
+  html +=
+    '<p class="pequeno suave mt2">Última actualización de tus casos: <strong>' +
+    (r.ultimaActualizacion ? Ui.esc(r.ultimaActualizacion) : "sin registros") + '</strong>. ' +
+    'Los cambios que haga una institución aparecen aquí cuando actualizas la pantalla.</p>' +
+    '<div class="botones botones--fila mt">' +
+      '<button type="button" class="boton boton--secundario" id="actualizar">Actualizar</button>' +
+    '</div>' +
+    '<p class="nota-servicio mt">Esta pantalla muestra <strong>bloqueos de tu licencia</strong>. ' +
+      'Las <strong>multas de un vehículo</strong> son otra consulta: ' +
+      '<a href="consulta-placa.html">consultar multas por placa</a>.</p>' +
+    '<div class="mt2">' + Ui.avisoDemo() + '</div>';
+
+  document.getElementById("pagina").innerHTML = html;
+  document.getElementById("cargando").hidden = true;
+  document.getElementById("pagina").hidden = false;
+
+  document.getElementById("actualizar").addEventListener("click", function () {
+    location.reload();
+  });
+
+  /* ============================================== Piezas de la vista === */
+
+  function resumenNumeros(r) {
+    var claseAccion = r.requierenAccion.length > 0 ? " resumen-caja--atencion" : "";
+    return '<div class="resumen">' +
+      '<div class="resumen-caja">' +
+        '<div class="resumen-numero">' + r.activos.length + '</div>' +
+        '<div class="resumen-texto">bloqueo' + (r.activos.length === 1 ? "" : "s") + ' activo' + (r.activos.length === 1 ? "" : "s") + '</div>' +
+      '</div>' +
+      '<div class="resumen-caja' + claseAccion + '">' +
+        '<div class="resumen-numero">' + r.requierenAccion.length + '</div>' +
+        '<div class="resumen-texto">' + (r.requierenAccion.length === 1 ? "necesita tu acción" : "necesitan tu acción") + '</div>' +
+      '</div>' +
+      '<div class="resumen-caja' + (r.resueltos.length > 0 ? " resumen-caja--listo" : "") + '">' +
+        '<div class="resumen-numero">' + r.resueltos.length + '</div>' +
+        '<div class="resumen-texto">ya resuelto' + (r.resueltos.length === 1 ? "" : "s") + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function tarjetaMunicipalidad(g) {
+    var chips = g.activos.map(function (b) {
+      return Ui.chipEstado(b, { corto: true, usarColorSubestado: true });
+    }).join("");
+
+    /* La próxima acción de la municipalidad es la del primer caso que
+       requiere acción del ciudadano; si no hay, la del primer caso activo. */
+    var destacado = g.activos.filter(function (b) {
+      return Datos.responsableDe(b) === "Ciudadano";
+    })[0] || g.activos[0];
+
+    /* Solo cuenta bloqueos con una multa enlazada explícitamente. No suma
+       dinero: un bloqueo no es una multa. */
+    var conMulta = g.activos.filter(function (b) { return b.multa_id && Datos.multaPorId(b.multa_id); }).length;
+
+    return '<div class="tarjeta tarjeta--muni" style="--color-muni:' + Ui.colorMuni(g.municipalidad.id) + '">' +
+      '<div class="muni-encabezado">' +
+        '<span class="muni-sello" aria-hidden="true">' + Ui.esc(Ui.inicialesMuni(g.municipalidad.nombre)) + '</span>' +
+        '<div>' +
+          '<h3 class="sin-margen">' + Ui.esc(g.municipalidad.nombre) + '</h3>' +
+          '<p class="muni-cuenta sin-margen">' + g.activos.length + ' bloqueo' + (g.activos.length === 1 ? "" : "s") + ' activo' + (g.activos.length === 1 ? "" : "s") +
+          (conMulta > 0 ? ' · ' + conMulta + ' con multa relacionada' : '') +
+          (g.resueltos.length > 0 ? ' · ' + g.resueltos.length + ' resuelto' + (g.resueltos.length === 1 ? "" : "s") : '') +
+          '</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="chips mt">' + chips + '</div>' +
+      '<div class="accion-ahora mt ' + Ui.claseAccion(destacado) + '">' +
+        '<div class="etiqueta">Próxima acción</div>' +
+        '<p class="frase">' + Ui.esc(destacado.proxima_accion) + '</p>' +
+        '<p class="quien">Le toca a: ' + Ui.esc(Datos.responsableDe(destacado)) + '</p>' +
+      '</div>' +
+      '<div class="botones mt">' +
+        g.activos.map(function (b) {
+          return '<a class="boton boton--secundario boton--bloque" href="caso.html?caso=' +
+                 encodeURIComponent(b.id) + '">Ver bloqueo ' + Ui.esc(b.id) + '</a>';
+        }).join("") +
+      '</div>' +
+    '</div>';
+  }
+
+  function filaCasoResuelto(b) {
+    var muni = Datos.municipalidadPorId(b.municipalidad_id);
+    return '<a class="tarjeta tarjeta-enlace" href="caso.html?caso=' + encodeURIComponent(b.id) + '">' +
+      '<div class="tarjeta-titulo">' +
+        '<strong>' + Ui.esc(muni.nombre) + '</strong>' +
+        Ui.chipEstado(b, { corto: true }) +
+      '</div>' +
+      '<p class="pequeno suave sin-margen">' + Ui.esc(b.id) + ' · levantado el ' + Ui.esc(b.ultima_actualizacion) + '</p>' +
+    '</a>';
+  }
+})();
+</script>
+
+</body>
+</html>

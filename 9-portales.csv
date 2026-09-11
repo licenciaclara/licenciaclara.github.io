@@ -1,0 +1,11 @@
+id,nombre,lugar,url,municipalidad_id,estado_revision,nota
+POR-01,Departamento de Tránsito (PNC),Nacional,https://sistemas.transito.gob.gt/consultaremisiones/consultaremisiones,,responde,Pide tipo de placa y número. Ofrece 14 categorías de placa.
+POR-02,EMETRA,Municipalidad de Guatemala,https://especiales.muniguate.com/remisiones.htm,MUNI-GUA,responde,Consulta de remisiones por tipo y número de placa.
+POR-03,EMIXTRA,Municipalidad de Mixco,https://consultas.munimixco.gob.gt/emixtra/consulta,MUNI-MIX,responde,Consulta y pago de multas de tránsito de Mixco.
+POR-04,Municipalidad de Villa Nueva,Villa Nueva,https://www.villanueva.gob.gt/,MUNI-VNU,responde,Consulta de remisiones dentro del sitio municipal.
+POR-05,Municipalidad de Santa Catarina Pinula,Santa Catarina Pinula,http://www.consultas.scp.gob.gt/transito/,,sin_https,El sitio responde solo por http; algunos navegadores lo marcan como no seguro.
+POR-06,Municipalidad de Palencia,Palencia,http://consultamulta.munipalencia.gob.gt/,,sin_https,El sitio responde solo por http; algunos navegadores lo marcan como no seguro.
+POR-07,Municipalidad de San Lucas Sacatepéquez,San Lucas Sacatepéquez,http://www.munisanlucas.gob.gt/Municipalidad_de_San_Lucas/Consulta_de_Remisiones.htm,,no_verificado,No pudimos comprobar que estuviera activo el día de la revisión.
+POR-08,Municipalidad de Antigua Guatemala,Antigua Guatemala,https://pagos.muniantigua.gob.gt/multas-transito,,no_verificado,No pudimos comprobar que estuviera activo el día de la revisión.
+POR-09,Portal de Servicios GL (MINFIN),Varias municipalidades,https://serviciosportalgl.minfin.gob.gt/consulta-multa-transito,,no_verificado,No pudimos comprobar que estuviera activo el día de la revisión.
+POR-10,PMT Amatitlán,Amatitlán,https://amatitlanpmt.com/,,no_verificado,No pudimos comprobar que estuviera activo el día de la revisión.

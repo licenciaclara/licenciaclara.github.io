@@ -1,0 +1,4 @@
+id,nombre,sitio_url,telefono_general,consulta_multas_url,fuente_id
+MUNI-GUA,Municipalidad de Guatemala,https://www.muniguate.com/juzgados-de-asuntos-municipales/,1551,https://www.muniguate.com/emetra/,F-05
+MUNI-MIX,Municipalidad de Mixco,https://munimixco.gob.gt/,1593,https://consultas.munimixco.gob.gt/emixtra/consulta,F-08
+MUNI-VNU,Municipalidad de Villa Nueva,https://www.villanueva.gob.gt/directorio/,1581,https://www.villanueva.gob.gt/,F-06

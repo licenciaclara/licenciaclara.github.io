@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingresar con identidad digital (simulación) · Licencia Clara</title>
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="tema-identidad">
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="barra barra--identidad">
+  <div class="barra-interna">
+    <span class="marca">
+      <span class="marca-icono" aria-hidden="true">ID</span>
+      Identidad Digital · Prototipo / Simulación
+    </span>
+  </div>
+</header>
+
+<main class="contenedor" id="contenido">
+
+  <a class="volver" href="index.html"><span aria-hidden="true">←</span> Volver al inicio de Licencia Clara</a>
+
+  <div class="aviso mb" role="note">
+    <span class="aviso-icono" aria-hidden="true">●</span>
+    <span><strong>Esta pantalla es una simulación.</strong> Representa cómo sería
+    entrar con una identidad digital, pero no es autenticación segura, no es un
+    portal del Gobierno y no debes escribir aquí credenciales reales de ningún servicio.</span>
+  </div>
+
+  <div id="etiqueta-servicio" class="mb"></div>
+  <h1>Ingresa con tu identidad digital</h1>
+  <p class="suave">Para ver el estado de tu licencia y sus bloqueos primero debes
+  identificarte. Licencia Clara no te pide crear una cuenta nueva: te identificas
+  aquí y regresas a tu licencia.</p>
+  <p class="nota-servicio">¿Solo quieres ver las multas de un vehículo? Eso no necesita ingreso:
+  <a href="consulta-placa.html">consultar multas por placa</a>.</p>
+
+  <div id="sesion-abierta"></div>
+
+  <div class="credenciales">
+    <h3>Credenciales de prueba</h3>
+    <table>
+      <thead>
+        <tr><th scope="col">Ciudadano</th><th scope="col">Usuario</th><th scope="col">Contraseña</th></tr>
+      </thead>
+      <tbody id="tabla-credenciales"></tbody>
+    </table>
+    <p class="pequeno suave sin-margen mt">Toca un usuario para llenar el formulario. Después pulsa <strong>Ingresar</strong>.</p>
+  </div>
+
+  <form id="formulario" novalidate>
+    <div class="campo">
+      <label for="usuario">Usuario</label>
+      <p class="ayuda" id="ayuda-usuario">Por ejemplo: sofia.demo</p>
+      <input type="text" id="usuario" name="usuario" autocomplete="off"
+             autocapitalize="none" spellcheck="false"
+             aria-describedby="ayuda-usuario" required>
+    </div>
+
+    <div class="campo">
+      <label for="clave">Contraseña</label>
+      <p class="ayuda" id="ayuda-clave">Para esta demostración todas son: demo1234</p>
+      <input type="password" id="clave" name="clave" autocomplete="off"
+             aria-describedby="ayuda-clave" required>
+      <label class="casilla">
+        <input type="checkbox" id="ver-clave">
+        <span>Mostrar la contraseña</span>
+      </label>
+    </div>
+
+    <div id="mensaje" role="alert" aria-live="polite"></div>
+
+    <button type="submit" class="boton boton--licencia boton--bloque mt">Ingresar</button>
+  </form>
+
+</main>
+
+<footer class="pie">
+  <div class="pie-interna">
+    <p class="sin-margen">Pantalla de simulación creada para el prototipo Licencia Clara.
+    No representa ni imita un sistema de identidad digital existente.</p>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var mensaje = document.getElementById("mensaje");
+  document.getElementById("etiqueta-servicio").innerHTML = Ui.servicio("licencia");
+
+  /* Si ya ingresó en esta pestaña, lo decimos y ofrecemos seguir o salir.
+     Una visita nueva nunca llega aquí con sesión (ver Sesion en app.js). */
+  var yaDentro = Sesion.actual();
+  if (yaDentro) {
+    document.getElementById("sesion-abierta").innerHTML =
+      '<div class="aviso aviso--neutro mb"><span class="aviso-icono" aria-hidden="true">●</span><span>' +
+        'Ya ingresaste como <strong>' + Ui.esc(yaDentro.nombre) + '</strong>. ' +
+        '<a href="mi-licencia.html">Ver mi licencia</a> o ingresa con otro usuario de prueba.' +
+      '</span></div>';
+  }
+
+  document.getElementById("ver-clave").addEventListener("change", function (e) {
+    document.getElementById("clave").type = e.target.checked ? "text" : "password";
+  });
+  var campoUsuario = document.getElementById("usuario");
+  var campoClave = document.getElementById("clave");
+
+  /* Tabla de credenciales de prueba, para que la presentación sea rápida. */
+  var filas = "";
+  DATOS.ciudadanos.forEach(function (c) {
+    filas += '<tr>' +
+      '<td>' + Ui.esc(c.nombre) + '</td>' +
+      '<td><button type="button" class="boton-texto usar" data-usuario="' + Ui.esc(c.usuario_demo) + '" data-clave="' + Ui.esc(c.clave_demo) + '">' + Ui.esc(c.usuario_demo) + '</button></td>' +
+      '<td><code>' + Ui.esc(c.clave_demo) + '</code></td>' +
+    '</tr>';
+  });
+  document.getElementById("tabla-credenciales").innerHTML = filas;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".usar"), function (b) {
+    b.addEventListener("click", function () {
+      campoUsuario.value = b.getAttribute("data-usuario");
+      campoClave.value = b.getAttribute("data-clave");
+      limpiarError();
+      campoUsuario.focus();
+    });
+  });
+
+  /* Si llegó aquí porque no tenía sesión, se lo explicamos. */
+  if (Ui.parametro("motivo") === "sesion") {
+    mensaje.innerHTML = '<div class="aviso aviso--neutro"><span class="aviso-icono" aria-hidden="true">●</span>' +
+      '<span>Para ver tu licencia primero tienes que ingresar.</span></div>';
+  }
+
+  function limpiarError() {
+    mensaje.innerHTML = "";
+    campoUsuario.removeAttribute("aria-invalid");
+    campoClave.removeAttribute("aria-invalid");
+  }
+
+  function mostrarError(texto, campo) {
+    mensaje.innerHTML = '<div class="error"><span aria-hidden="true">⚠</span><span>' + Ui.esc(texto) + '</span></div>';
+    if (campo) { campo.setAttribute("aria-invalid", "true"); campo.focus(); }
+  }
+
+  document.getElementById("formulario").addEventListener("submit", function (e) {
+    e.preventDefault();
+    limpiarError();
+
+    var u = campoUsuario.value.trim();
+    var c = campoClave.value;
+
+    if (!u) { mostrarError("Escribe tu usuario. Por ejemplo: sofia.demo", campoUsuario); return; }
+    if (!c) { mostrarError("Escribe tu contraseña. En esta demostración es: demo1234", campoClave); return; }
+
+    var ciudadano = Sesion.entrar(u, c);
+    if (!ciudadano) {
+      mostrarError("El usuario o la contraseña no coinciden. Revisa que estén bien escritos (la contraseña de prueba es demo1234) o toca uno de los usuarios de la lista de arriba.", campoUsuario);
+      return;
+    }
+
+    mensaje.innerHTML = '<div class="exito"><span aria-hidden="true">✓</span><span>Identidad confirmada. Abriendo el estado de tu licencia…</span></div>';
+    setTimeout(function () { location.href = "mi-licencia.html"; }, 700);
+  });
+
+  campoUsuario.addEventListener("input", limpiarError);
+  campoClave.addEventListener("input", limpiarError);
+})();
+</script>
+
+</body>
+</html>

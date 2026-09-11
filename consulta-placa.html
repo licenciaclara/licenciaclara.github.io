@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multas vehiculares por placa · Licencia Clara</title>
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="barra no-imprimir">
+  <div class="barra-interna">
+    <a class="marca" href="index.html">
+      <span class="marca-icono" aria-hidden="true">LC</span>
+      Licencia Clara
+    </a>
+    <div class="barra-derecha" id="barra-derecha"></div>
+  </div>
+</header>
+
+<div class="portada portada--multas">
+  <div class="portada-interna">
+    <span id="etiqueta-servicio"></span>
+    <h1>Consulta las multas de un vehículo</h1>
+    <p>Escribe la placa una sola vez. No necesitas ingresar.</p>
+  </div>
+</div>
+
+<main class="contenedor" id="contenido">
+
+  <!-- 1. Formulario -->
+  <section id="fase-formulario">
+    <a class="volver" href="index.html"><span aria-hidden="true">←</span> Volver al inicio</a>
+
+    <div class="tarjeta">
+      <h2>Datos de la placa</h2>
+
+      <form id="formulario" novalidate>
+        <div class="campo">
+          <div class="placa-caja">
+            <div class="placa-tipo">
+              <label for="placa-tipo">Tipo de placa</label>
+              <select id="placa-tipo" aria-describedby="ayuda-tipo"></select>
+            </div>
+            <div class="placa-numero">
+              <label for="placa-numero">Número de placa</label>
+              <input type="text" id="placa-numero" inputmode="text"
+                     autocapitalize="characters" autocomplete="off" spellcheck="false"
+                     maxlength="12" aria-describedby="ayuda-placa">
+            </div>
+          </div>
+          <p class="ayuda" id="ayuda-tipo">El tipo es la letra que va antes del número en la placa y en la tarjeta de circulación.</p>
+          <p class="ayuda" id="ayuda-placa">Ejemplo: si tu placa dice <strong>P-123ABC</strong>, elige el tipo <strong>P</strong> y escribe <strong>123ABC</strong>. Puedes usar guion o espacios.</p>
+        </div>
+
+        <div id="mensaje" role="alert" aria-live="assertive"></div>
+
+        <button type="submit" class="boton boton--multas boton--bloque mt">Consultar multas</button>
+      </form>
+
+      <div class="mt2">
+        <p class="pequeno suave sin-margen mb">Placas de prueba (toca una para llenar el formulario):</p>
+        <div class="botones botones--fila" id="placas-prueba"></div>
+      </div>
+    </div>
+
+    <p class="nota-servicio">
+      <strong>Esta consulta muestra multas del vehículo.</strong> No muestra datos de la persona
+      propietaria ni bloqueos de licencia. Para ver tu licencia,
+      <a href="identidad.html">ingresa con tu identidad digital</a>.
+    </p>
+
+    <div class="aviso aviso--jurado mt" role="note">
+      <span class="aviso-icono" aria-hidden="true">⚠</span>
+      <span><strong>DEMO:</strong> los portales reales no permiten consultas automatizadas.
+      Esta simulación muestra cómo funcionaría Licencia Clara si las instituciones
+      expusieran APIs públicas. Las multas son ficticias.</span>
+    </div>
+
+    <details class="desplegable mt">
+      <summary>Ver los portales que se revisarían</summary>
+      <div class="desplegable-cuerpo">
+        <p class="suave pequeno">Cada uno es un sitio distinto, con su propio formulario. Hoy hay que visitarlos uno por uno.</p>
+        <ul class="portales" id="lista-portales-estatica"></ul>
+      </div>
+    </details>
+
+    <details class="desplegable">
+      <summary>Por qué esto es una simulación y no una consulta real</summary>
+      <div class="desplegable-cuerpo">
+        <p>Intentamos hacerlo de verdad. No se puede, y por razones técnicas concretas:</p>
+        <ul style="padding-left:20px">
+          <li>Los portales son sitios de terceros con políticas <strong>CORS</strong> que bloquean las peticiones desde otro dominio.</li>
+          <li><strong>Ninguno expone una API pública</strong> a la que podamos consultar.</li>
+          <li>Tampoco sirve meterlos en un <em>iframe</em>: la <strong>política del mismo origen</strong> impide leer su contenido.</li>
+          <li><code>postMessage</code> no funciona porque los portales no tienen código para escuchar mensajes externos.</li>
+          <li>Un intermediario propio exigiría <em>scraping</em> de 10 sitios distintos, y eso no cabe en el tiempo de un hackathon.</li>
+        </ul>
+        <p class="sin-margen">Por eso <strong>no enviamos ninguna petición a los portales</strong>. Mostramos
+        el recorrido con datos ficticios y dejamos los enlaces reales para que
+        cualquiera consulte por su cuenta.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 2. Consultando -->
+  <section id="fase-consulta" hidden>
+    <div class="tarjeta">
+      <h2 id="titulo-consulta" tabindex="-1">Buscando multas en los portales…</h2>
+      <p class="suave pequeno" id="subtitulo-consulta"></p>
+      <div class="avance" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Avance de la consulta">
+        <div class="avance-relleno" id="avance"></div>
+      </div>
+      <ul class="portales" id="lista-portales"></ul>
+    </div>
+    <p class="centro" aria-live="polite" id="estado-consulta"></p>
+  </section>
+
+  <!-- 3. Resultados -->
+  <section id="fase-resultados" hidden></section>
+
+</main>
+
+<footer class="pie">
+  <div class="pie-interna">
+    <p class="sin-margen"><strong>Licencia Clara</strong> · Demostración con datos ficticios.
+    No consultamos sistemas reales.</p>
+    <ul>
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="orientacion.html">Orientación y fuentes</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  /* Esta pantalla NO usa la sesión para nada más que la barra superior.
+     Consultar una placa no identifica a nadie ni muestra al titular. */
+  Ui.pintarBarraCiudadano(Sesion.actual());
+  document.getElementById("etiqueta-servicio").innerHTML = Ui.servicio("multas", true);
+
+  var portales   = Datos.portales();
+  var campoTipo  = document.getElementById("placa-tipo");
+  var campoPlaca = document.getElementById("placa-numero");
+  var mensaje    = document.getElementById("mensaje");
+
+  var faseFormulario = document.getElementById("fase-formulario");
+  var faseConsulta   = document.getElementById("fase-consulta");
+  var faseResultados = document.getElementById("fase-resultados");
+
+  var menosMovimiento = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ------------------------------------------------ Preparar el formulario */
+
+  campoTipo.innerHTML = Datos.tiposDePlaca().map(function (t) {
+    return '<option value="' + Ui.esc(t) + '"' + (t === "P" ? " selected" : "") + '>' + Ui.esc(t) + '</option>';
+  }).join("");
+
+  document.getElementById("lista-portales-estatica").innerHTML =
+    portales.map(function (p) { return filaPortal(p, "", true); }).join("");
+
+  document.getElementById("placas-prueba").innerHTML =
+    [["P", "123ABC"], ["P", "456DEF"], ["M", "2244BC"], ["P", "9090XY"], ["P", "789GHI"]].map(function (par) {
+      return '<button type="button" class="boton boton--secundario prueba" data-tipo="' + par[0] +
+             '" data-placa="' + par[1] + '">' + par[0] + '-' + par[1] + '</button>';
+    }).join("");
+
+  Array.prototype.forEach.call(document.querySelectorAll(".prueba"), function (b) {
+    b.addEventListener("click", function () {
+      campoTipo.value = b.getAttribute("data-tipo");
+      campoPlaca.value = b.getAttribute("data-placa");
+      limpiarError();
+      campoPlaca.focus();
+    });
+  });
+
+  /* A propósito NO recordamos la consulta anterior. Si dejáramos puesto el
+     tipo de la vez pasada, alguien podría escribir su placa nueva, obtener
+     "sin resultados" por el tipo equivocado y creer que no debe nada. */
+
+  /* ------------------------------------------------------------ Validación */
+
+  function limpiarError() {
+    mensaje.innerHTML = "";
+    campoPlaca.removeAttribute("aria-invalid");
+  }
+
+  function mostrarError(texto) {
+    mensaje.innerHTML = '<div class="error"><span aria-hidden="true">⚠</span><span>' + Ui.esc(texto) + '</span></div>';
+    campoPlaca.setAttribute("aria-invalid", "true");
+    campoPlaca.focus();
+  }
+
+  campoPlaca.addEventListener("input", limpiarError);
+
+  document.getElementById("formulario").addEventListener("submit", function (e) {
+    e.preventDefault();
+    limpiarError();
+
+    var tipo = campoTipo.value;
+    var texto = Datos.normalizarPlaca(campoPlaca.value);
+
+    if (!texto) {
+      mostrarError("Falta el número de placa. Escríbelo como aparece en la placa o en la tarjeta de circulación. Ejemplo: 123ABC.");
+      return;
+    }
+    if (texto.length < 4) {
+      mostrarError("El número parece incompleto: tiene " + texto.length + (texto.length === 1 ? " carácter" : " caracteres") + ". Revisa la placa y escríbelo completo. Ejemplo: 123ABC.");
+      return;
+    }
+
+    consultar(tipo, texto);
+  });
+
+  /* ------------------------------------------- La consulta simulada */
+
+  function consultar(tipo, placa) {
+    faseFormulario.hidden = true;
+    faseResultados.hidden = true;
+    faseConsulta.hidden = false;
+    window.scrollTo(0, 0);
+    document.getElementById("titulo-consulta").focus();
+
+    document.getElementById("subtitulo-consulta").innerHTML =
+      "Placa " + Ui.placa(tipo, placa) + " · " + portales.length + " portales";
+
+    var lista = document.getElementById("lista-portales");
+    lista.innerHTML = portales.map(function (p) { return filaPortal(p, "pendiente", false); }).join("");
+
+    var barra = document.getElementById("avance");
+    var contenedorBarra = barra.parentNode;
+    var aviso = document.getElementById("estado-consulta");
+
+    /* Sabemos de antemano qué portales "encuentran" algo, para marcarlos. */
+    var resultado = Datos.consultarPlaca(placa, tipo);
+    var conHallazgo = {};
+    resultado.encontrados.forEach(function (e) {
+      if (e.portal) conHallazgo[e.portal.id] = (conHallazgo[e.portal.id] || 0) + 1;
+    });
+
+    var i = 0;
+    var paso = menosMovimiento ? 90 : 300;
+
+    function siguiente() {
+      if (i > 0) {
+        var anterior = lista.children[i - 1];
+        var idAnterior = portales[i - 1].id;
+        anterior.className = "portal " + (conHallazgo[idAnterior] ? "portal--hallazgo" : "portal--listo");
+        anterior.querySelector(".portal-luz").textContent = conHallazgo[idAnterior] ? "!" : "✓";
+        anterior.querySelector(".portal-marca").textContent =
+          conHallazgo[idAnterior]
+            ? conHallazgo[idAnterior] + (conHallazgo[idAnterior] === 1 ? " multa" : " multas")
+            : "Sin multas";
+      }
+
+      var porcentaje = Math.round((i / portales.length) * 100);
+      barra.style.width = porcentaje + "%";
+      contenedorBarra.setAttribute("aria-valuenow", String(porcentaje));
+
+      if (i >= portales.length) {
+        aviso.textContent = "Consulta terminada.";
+        setTimeout(function () { mostrarResultados(resultado); }, menosMovimiento ? 0 : 350);
+        return;
+      }
+
+      var fila = lista.children[i];
+      fila.className = "portal portal--consultando";
+      fila.querySelector(".portal-luz").textContent = "•";
+      fila.querySelector(".portal-marca").textContent = "Revisando…";
+      /* Solo anunciamos cada tres portales para no saturar a quien usa lector de pantalla. */
+      if (i % 3 === 0) {
+        aviso.textContent = "Revisando portales: " + (i + 1) + " de " + portales.length + ".";
+      }
+
+      i++;
+      setTimeout(siguiente, paso);
+    }
+
+    siguiente();
+  }
+
+  /* ----------------------------------------------------------- Resultados */
+
+  function mostrarResultados(r) {
+    faseConsulta.hidden = true;
+    faseResultados.hidden = false;
+    window.scrollTo(0, 0);
+
+    var html = "";
+    var n = r.encontrados.length;
+
+    html +=
+      '<div class="resultado-cabecera resultado-cabecera--multas">' +
+        '<h2 id="titulo-resultados" tabindex="-1">' +
+          (n === 0 ? "No encontramos multas" : (n === 1 ? "1 multa encontrada" : n + " multas encontradas")) +
+        '</h2>' +
+        '<p>Revisamos ' + portales.length + ' portales municipales para esta placa:</p>' +
+        Ui.placa(r.tipo, r.placa) +
+      '</div>';
+
+    if (n === 0) {
+      html +=
+        '<div class="vacio">' +
+          '<div class="vacio-icono" aria-hidden="true">✓</div>' +
+          '<p><strong>No se encontraron multas para esta placa en los portales de esta demostración.</strong></p>' +
+          '<p class="pequeno">En Guatemala hay más de 300 municipios y no todos publican un portal de consulta. ' +
+          'Esto no confirma que el vehículo esté solvente en todo el país.</p>' +
+        '</div>';
+
+      /* Tropiezo frecuente: el tipo de placa equivocado. */
+      if (r.sugerencias && r.sugerencias.length > 0) {
+        html += '<div class="aviso mt"><span class="aviso-icono" aria-hidden="true">●</span><span>' +
+          '<strong>Revisa el tipo de placa.</strong> Buscamos <strong>' + Ui.esc(r.tipo) + '-' + Ui.esc(r.placa) +
+          '</strong>, pero sí hay multas para ese mismo número con ' +
+          (r.sugerencias.length === 1 ? 'el tipo ' : 'los tipos ') +
+          r.sugerencias.map(function (t) { return "<strong>" + Ui.esc(t) + "</strong>"; }).join(" o ") + '. ' +
+          r.sugerencias.map(function (t) {
+            return '<button type="button" class="boton-texto reintentar" data-tipo="' + Ui.esc(t) +
+                   '">Buscar ' + Ui.esc(t) + '-' + Ui.esc(r.placa) + '</button>';
+          }).join(" · ") +
+          '</span></div>';
+      }
+    } else {
+      html += resumenTotal(r);
+      r.grupos.forEach(function (g) { html += tarjetaGrupo(g); });
+    }
+
+    html +=
+      '<div class="botones botones--fila mt2 no-imprimir">' +
+        '<button type="button" class="boton boton--multas" id="otra">Consultar otra placa</button>' +
+        '<a class="boton boton--secundario" href="index.html">Volver al inicio</a>' +
+      '</div>' +
+      '<p class="nota-servicio mt">¿Quieres saber si <strong>tu licencia</strong> tiene bloqueos? Eso es otra consulta: ' +
+        '<a href="identidad.html">ingresa con tu identidad digital</a>.</p>';
+
+    html +=
+      '<div class="aviso aviso--jurado mt" role="note">' +
+        '<span class="aviso-icono" aria-hidden="true">⚠</span>' +
+        '<span><strong>DEMO:</strong> los portales reales no permiten consultas automatizadas. ' +
+        'Esta simulación muestra cómo funcionaría Licencia Clara si las instituciones ' +
+        'expusieran APIs públicas. Las multas y su estado de pago son ficticios.</span>' +
+      '</div>';
+
+    html +=
+      '<details class="desplegable mt">' +
+        '<summary>Ver los portales reales y consultarlos por tu cuenta</summary>' +
+        '<div class="desplegable-cuerpo">' +
+          '<ul class="portales">' + portales.map(enlacePortal).join("") + '</ul>' +
+        '</div>' +
+      '</details>';
+
+    faseResultados.innerHTML = html;
+    document.getElementById("titulo-resultados").focus();
+
+    document.getElementById("otra").addEventListener("click", function () {
+      faseResultados.hidden = true;
+      faseFormulario.hidden = false;
+      window.scrollTo(0, 0);
+      campoPlaca.focus();
+      campoPlaca.select();
+    });
+
+    Array.prototype.forEach.call(faseResultados.querySelectorAll(".reintentar"), function (b) {
+      b.addEventListener("click", function () {
+        var t = b.getAttribute("data-tipo");
+        campoTipo.value = t;
+        campoPlaca.value = r.placa;
+        consultar(t, r.placa);
+      });
+    });
+  }
+
+  /* Total: solo pendientes con monto conocido, sin duplicados. */
+  function resumenTotal(r) {
+    var t = r.total;
+    var html = '<div class="tarjeta total">';
+
+    if (r.pendientes === 0) {
+      html +=
+        '<p class="total-rotulo">Multas pendientes de pago</p>' +
+        '<p class="total-cifra total-cifra--listo"><span aria-hidden="true">✓ </span>Ninguna</p>' +
+        '<p class="pequeno suave sin-margen">' +
+          (r.pagadas === 1 ? "La multa encontrada aparece como pagada" : "Las " + r.pagadas + " multas encontradas aparecen como pagadas") +
+          ' en esta demostración. Se muestran abajo como historial.</p>';
+    } else {
+      html +=
+        '<p class="total-rotulo">Total pendiente en esta demostración</p>' +
+        (t.conMonto > 0
+          ? '<p class="total-cifra">' + Ui.esc(Ui.quetzales(t.total)) + '</p>'
+          : '<p class="total-cifra total-cifra--pendiente">Monto pendiente de verificación</p>') +
+        '<ul class="total-lista">' +
+          (t.conMonto > 0
+            ? '<li>Suma ' + (t.conMonto === 1 ? "1 multa pendiente" : t.conMonto + " multas pendientes") + ' con monto conocido.</li>' : '') +
+          (t.sinMonto > 0
+            ? '<li><strong>' + (t.sinMonto === 1 ? "1 multa pendiente no tiene" : t.sinMonto + " multas pendientes no tienen") +
+              ' monto confirmado</strong> y no se incluye' + (t.sinMonto === 1 ? "" : "n") + ' en el total.</li>' : '') +
+          (r.pagadas > 0
+            ? '<li>' + (r.pagadas === 1 ? "1 multa pagada no se suma." : r.pagadas + " multas pagadas no se suman.") + '</li>' : '') +
+        '</ul>' +
+        '<p class="pequeno suave sin-margen">Usamos el <strong>monto base del Reglamento de Tránsito</strong> de cada infracción. ' +
+          'Las multas son ficticias: no es una deuda real y no incluye descuentos, intereses ni recargos. ' +
+          'El monto a pagar lo confirma la municipalidad.</p>';
+    }
+    return html + '</div>';
+  }
+
+  function tarjetaGrupo(g) {
+    var color = Ui.colorMuni(g.municipalidad.id);
+    var sellos = g.portales.map(function (p) {
+      return '<span class="sello-portal"><span class="punto" aria-hidden="true"></span>Encontrado en ' + Ui.esc(p.nombre) + '</span>';
+    }).join(" ");
+
+    var cuenta = g.multas.length + (g.multas.length === 1 ? " multa" : " multas");
+    if (g.pendientes > 0) cuenta += " · " + g.pendientes + (g.pendientes === 1 ? " pendiente" : " pendientes");
+
+    return '<section class="tarjeta tarjeta--muni" style="--color-muni:' + color + '">' +
+      '<div class="muni-encabezado">' +
+        '<span class="muni-sello" aria-hidden="true">' + Ui.esc(Ui.inicialesMuni(g.municipalidad.nombre)) + '</span>' +
+        '<div>' +
+          '<h3 class="sin-margen">' + Ui.esc(g.municipalidad.nombre) + '</h3>' +
+          '<p class="pequeno suave sin-margen">' + cuenta + '</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="chips mt">' + sellos + '</div>' +
+      g.multas.map(function (e) { return Ui.tarjetaMulta(e); }).join("") +
+    '</section>';
+  }
+
+  /* --------------------------------------------------------- Piezas HTML */
+
+  function filaPortal(p, clase, conEnlace) {
+    var marca = "";
+    if (conEnlace) {
+      if (p.estado_revision === "responde") marca = "Responde";
+      else if (p.estado_revision === "sin_https") marca = "Solo http";
+      else marca = "No verificado";
+    }
+    return '<li class="portal">' +
+      '<span class="portal-luz" aria-hidden="true">' + (conEnlace ? "·" : "") + '</span>' +
+      '<span class="portal-texto">' +
+        '<span class="portal-nombre">' + Ui.esc(p.nombre) + '</span>' +
+        '<span class="portal-lugar">' + Ui.esc(p.lugar) + '</span>' +
+      '</span>' +
+      '<span class="portal-marca">' + Ui.esc(marca) + '</span>' +
+    '</li>';
+  }
+
+  function enlacePortal(p) {
+    var nota = p.estado_revision === "responde"
+      ? "La página cargó cuando la revisamos el 10/09/2026."
+      : (p.estado_revision === "sin_https"
+          ? "Responde solo por http: tu navegador puede advertir que el sitio no es seguro."
+          : "No pudimos comprobar que estuviera activo el día de la revisión.");
+    return '<li class="portal">' +
+      '<span class="portal-luz" aria-hidden="true">→</span>' +
+      '<span class="portal-texto">' +
+        '<span class="portal-nombre"><a href="' + Ui.esc(p.url) + '" target="_blank" rel="noopener">' + Ui.esc(p.nombre) +
+          '<span class="solo-lectores"> (se abre en otra pestaña)</span></a></span>' +
+        '<span class="portal-lugar">' + Ui.esc(p.lugar) + ' · ' + Ui.esc(nota) + '</span>' +
+      '</span>' +
+    '</li>';
+  }
+})();
+</script>
+
+</body>
+</html>

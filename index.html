@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Licencia Clara · Multas vehiculares y estado de tu licencia</title>
+<meta name="description" content="Demostración con datos ficticios para consultar multas vehiculares por placa y el estado de una licencia de conducir en Guatemala. No es un servicio oficial.">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="barra">
+  <div class="barra-interna">
+    <a class="marca" href="index.html">
+      <span class="marca-icono" aria-hidden="true">LC</span>
+      Licencia Clara
+    </a>
+    <div class="barra-derecha" id="barra-derecha"></div>
+  </div>
+</header>
+
+<div class="portada">
+  <div class="portada-interna">
+    <h1>Consulta tus multas vehiculares y el estado de tu licencia</h1>
+    <p>Son dos consultas distintas. Elige la que necesitas.</p>
+    <p class="portada-demo"><span aria-hidden="true">●</span> Demostración con datos ficticios. No es un servicio oficial.</p>
+  </div>
+</div>
+
+<main class="contenedor" id="contenido">
+
+  <h2 class="solo-lectores">Elige una consulta</h2>
+
+  <div class="opciones">
+
+    <section class="opcion opcion--multas" aria-labelledby="titulo-multas">
+      <div class="opcion-cabeza">
+        <span class="opcion-icono" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="30" height="30" focusable="false"><rect x="3" y="8" width="26" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M8 13h6M8 18h4M18 13h6M18 18h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </span>
+        <span class="opcion-requisito">No necesitas ingresar</span>
+      </div>
+      <h3 id="titulo-multas">Multas vehiculares</h3>
+      <p class="opcion-descripcion">Consulta por número de placa.</p>
+      <p class="opcion-detalle">Vas a necesitar: el tipo y el número de placa del vehículo.</p>
+      <a class="boton boton--multas boton--bloque" href="consulta-placa.html">Consultar multas <span aria-hidden="true">→</span></a>
+    </section>
+
+    <section class="opcion opcion--licencia" aria-labelledby="titulo-licencia">
+      <div class="opcion-cabeza">
+        <span class="opcion-icono" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="30" height="30" focusable="false"><rect x="3" y="6" width="26" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="11" cy="14" r="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M6.5 21.5c1-2.6 2.6-3.5 4.5-3.5s3.5.9 4.5 3.5M19 12h6M19 17h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </span>
+        <span class="opcion-requisito">Necesitas ingresar</span>
+      </div>
+      <h3 id="titulo-licencia">Estado de la licencia</h3>
+      <p class="opcion-descripcion">Ingresa con tu identidad digital para consultar tu licencia y sus bloqueos.</p>
+      <p class="opcion-detalle">Vas a necesitar: tu usuario y contraseña de identidad digital.</p>
+      <a class="boton boton--licencia boton--bloque" href="identidad.html" id="ir-licencia">Consultar mi licencia <span aria-hidden="true">→</span></a>
+    </section>
+
+  </div>
+
+  <div class="centro mt2">
+    <a class="boton boton--secundario" href="orientacion.html">Consultar orientación</a>
+  </div>
+
+  <details class="desplegable mt2">
+    <summary>¿Qué diferencia hay entre una multa y un bloqueo?</summary>
+    <div class="desplegable-cuerpo">
+      <p><strong>La multa vehicular</strong> es la sanción económica por una infracción.
+      Queda asociada a la placa del vehículo y se paga a la municipalidad.
+      Por eso se consulta con la placa.</p>
+      <p><strong>El bloqueo de licencia</strong> es una marca en el registro de una persona
+      en el Departamento de Tránsito. Impide hacer trámites con su licencia y lo ordena un
+      Juzgado de Asuntos Municipales de Tránsito. Por eso se consulta ingresando con identidad digital.</p>
+      <p class="sin-margen"><strong>Son registros distintos.</strong> Pagar una multa no levanta un
+      bloqueo por sí solo, no todo bloqueo tiene una multa y consultar una placa no dice
+      nada sobre la licencia de nadie.</p>
+    </div>
+  </details>
+
+  <div class="mt" id="aviso-demo"></div>
+
+  <p class="centro mt2 pequeno suave">
+    <a href="panel.html">Panel institucional (demostración)</a>
+  </p>
+
+</main>
+
+<footer class="pie">
+  <div class="pie-interna">
+    <p class="sin-margen"><strong>Licencia Clara</strong> · Demostración con datos ficticios.</p>
+    <p class="sin-margen mt">No es un servicio oficial ni tiene respaldo del Ministerio de Gobernación,
+    del Departamento de Tránsito ni de ninguna municipalidad.</p>
+    <ul>
+      <li><a href="orientacion.html">Orientación y fuentes</a></li>
+      <li><button type="button" class="boton-texto" id="reiniciar">Reiniciar los datos de la demostración</button></li>
+    </ul>
+    <p class="pequeno" id="aviso-guardado"></p>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  document.getElementById("aviso-demo").innerHTML = Ui.avisoDemo(
+    '<strong>Esto es una demostración.</strong> Las placas, multas, personas, licencias y bloqueos son ficticios. ' +
+    'Los montos de las multas son de referencia según el Reglamento de Tránsito. ' +
+    'No consultamos sistemas reales, no cobramos multas y no levantamos bloqueos.');
+
+  /* La portada es pública. Solo si la persona YA ingresó en esta pestaña
+     se muestra su nombre arriba (con "Cerrar sesión") y el botón de la
+     licencia lleva directo a su información. Una visita nueva nunca
+     trae una sesión abierta: ver Sesion en js/app.js. */
+  var ciu = Sesion.actual();
+  Ui.pintarBarraCiudadano(ciu);
+  if (ciu) document.getElementById("ir-licencia").setAttribute("href", "mi-licencia.html");
+
+  document.getElementById("reiniciar").addEventListener("click", function () {
+    Datos.reiniciar();
+    location.reload();
+  });
+
+  if (!Datos.almacenamientoDisponible()) {
+    document.getElementById("aviso-guardado").textContent =
+      "Aviso: tu navegador no permite guardar datos, así que los cambios del panel institucional no se conservarán al cambiar de pantalla.";
+  }
+})();
+</script>
+
+</body>
+</html>

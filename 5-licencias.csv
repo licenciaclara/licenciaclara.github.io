@@ -1,0 +1,5 @@
+id,ciudadano_id,numero,tipo,fecha_vencimiento
+L-01,C-100001,LIC-DEMO-100001,Tipo B,14/03/2027
+L-02,C-100002,LIC-DEMO-100002,Tipo M (motocicleta),30/11/2026
+L-03,C-100003,LIC-DEMO-100003,Tipo A,22/01/2028
+L-04,C-100004,LIC-DEMO-100004,Tipo B,05/08/2027

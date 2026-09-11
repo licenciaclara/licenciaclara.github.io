@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel institucional (demostración) · Licencia Clara</title>
+<link rel="stylesheet" href="css/estilos.css">
+<style>
+  .fila-caso {
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 14px 0; border-bottom: 1px solid var(--borde);
+  }
+  .fila-caso:last-child { border-bottom: 0; }
+</style>
+</head>
+<body class="tema-panel">
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="barra barra--panel">
+  <div class="barra-interna">
+    <span class="marca">
+      <span class="marca-icono" aria-hidden="true">PI</span>
+      Panel institucional · Demostración
+    </span>
+  </div>
+</header>
+
+<main class="contenedor" id="contenido">
+
+  <a class="volver" href="index.html"><span aria-hidden="true">←</span> Salir del panel</a>
+
+  <div class="aviso mb" role="note">
+    <span class="aviso-icono" aria-hidden="true">●</span>
+    <span><strong>Panel institucional simulado de una institución ficticia.</strong>
+    No hay control de acceso: cualquiera que abra esta dirección puede escribir.
+    Los permisos que se muestran aquí no son seguridad de producción y esta pantalla
+    no está conectada a ningún sistema real.</span>
+  </div>
+
+  <h1>Actualizar un bloqueo de licencia</h1>
+  <p class="suave">Así es como la información llega al ciudadano: la institución
+  actualiza, y el ciudadano lo ve al refrescar la pantalla de su licencia.
+  Este panel no crea ni cambia multas vehiculares.</p>
+
+  <div class="tarjeta">
+    <div class="campo sin-margen">
+      <label for="ciudadano">1. Selecciona un ciudadano</label>
+      <select id="ciudadano"></select>
+    </div>
+  </div>
+
+  <div id="lista"></div>
+  <div id="editor"></div>
+
+  <div class="tarjeta mt2">
+    <h2>Reiniciar la demostración</h2>
+    <p class="pequeno suave">Borra todas las actualizaciones guardadas en este navegador
+    y devuelve los casos a su estado original. También cierra la sesión del ciudadano.</p>
+    <button type="button" class="boton boton--secundario boton--bloque" id="reiniciar">Reiniciar datos DEMO</button>
+    <div id="aviso-reinicio" aria-live="polite"></div>
+  </div>
+
+  <div class="aviso aviso--neutro mt2">
+    <span class="aviso-icono" aria-hidden="true">●</span>
+    <span>Lo que guardes aquí queda <strong>en este navegador y en este dispositivo</strong>.
+    Si abres la demostración en otra computadora, no verá estos cambios. Una base
+    compartida sí lo haría; este prototipo demuestra el flujo de información, no
+    una base institucional compartida.</span>
+  </div>
+
+</main>
+
+<footer class="pie">
+  <div class="pie-interna">
+    <p class="sin-margen"><strong>Licencia Clara</strong> · Panel de demostración. Datos ficticios.</p>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var selector = document.getElementById("ciudadano");
+  var lista    = document.getElementById("lista");
+  var editor   = document.getElementById("editor");
+  var abierto  = "";
+  /* Guardamos el mensaje aparte porque al guardar redibujamos la lista y el
+     editor: si el mensaje viviera solo en el HTML, se borraría al instante. */
+  var mensajeGuardado = "";
+
+  /* 1. Ciudadanos */
+  selector.innerHTML = DATOS.ciudadanos.map(function (c) {
+    return '<option value="' + Ui.esc(c.id) + '">' + Ui.esc(c.nombre) + ' · ' + Ui.esc(c.id) + '</option>';
+  }).join("");
+  selector.addEventListener("change", function () { abierto = ""; mensajeGuardado = ""; pintarLista(); });
+
+  /* 2. Sus bloqueos */
+  function pintarLista() {
+    var bloqueos = Datos.bloqueosDe(selector.value);
+
+    if (bloqueos.length === 0) {
+      lista.innerHTML = '<div class="vacio mt"><p><strong>Este ciudadano no tiene bloqueos registrados.</strong></p></div>';
+      editor.innerHTML = "";
+      return;
+    }
+
+    lista.innerHTML =
+      '<div class="tarjeta">' +
+        '<h2>2. Sus bloqueos de licencia</h2>' +
+        bloqueos.map(function (b) {
+          var muni = Datos.municipalidadPorId(b.municipalidad_id);
+          return '<div class="fila-caso">' +
+            '<div style="flex:1 1 220px">' +
+              '<div><strong>' + Ui.esc(b.id) + '</strong></div>' +
+              '<div class="pequeno suave">' + Ui.esc(muni.nombre) + ' · actualizado ' + Ui.esc(b.ultima_actualizacion) + '</div>' +
+              '<div class="chips mt">' + Ui.chipEstado(b, { corto: true, usarColorSubestado: true }) + '</div>' +
+            '</div>' +
+            '<button type="button" class="boton boton--secundario abrir" data-caso="' + Ui.esc(b.id) + '">' +
+              (abierto === b.id ? "Cerrar" : "Abrir") + '</button>' +
+          '</div>';
+        }).join("") +
+      '</div>';
+
+    Array.prototype.forEach.call(lista.querySelectorAll(".abrir"), function (boton) {
+      boton.addEventListener("click", function () {
+        var id = boton.getAttribute("data-caso");
+        if (id !== abierto) mensajeGuardado = "";
+        abierto = (abierto === id) ? "" : id;
+        pintarLista();
+        pintarEditor();
+        if (abierto) {
+          var e = document.getElementById("editor");
+          if (e) e.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
+
+    pintarEditor();
+  }
+
+  /* 3-6. Abrir, cambiar estado, escribir actualización, guardar */
+  function pintarEditor() {
+    if (!abierto) { editor.innerHTML = ""; return; }
+
+    var b = Datos.bloqueoPorId(abierto);
+    if (!b) { editor.innerHTML = ""; return; }
+    var muni = Datos.municipalidadPorId(b.municipalidad_id);
+
+    var opcionesEstado = Ui.listaEstados().map(function (e) {
+      return '<option value="' + e.clave + '"' + (e.clave === b.estado ? " selected" : "") + '>' +
+             e.icono + "  " + Ui.esc(e.etiqueta) + '</option>';
+    }).join("");
+
+    var opcionesSub = '<option value="">Sin especificar</option>' +
+      Ui.listaSubestados().map(function (s) {
+        return '<option value="' + s.clave + '"' + (s.clave === b.subestado ? " selected" : "") + '>' +
+               Ui.esc(s.etiqueta) + '</option>';
+      }).join("");
+
+    editor.innerHTML =
+      '<div class="tarjeta">' +
+        '<h2>3. Bloqueo ' + Ui.esc(b.id) + '</h2>' +
+        '<p class="pequeno suave">' + Ui.esc(muni.nombre) + ' · ' + Ui.esc(Datos.juzgadoPorId(b.juzgado_id).nombre) + '</p>' +
+
+        '<div class="campo mt">' +
+          '<label for="estado">4. Nuevo estado</label>' +
+          '<select id="estado">' + opcionesEstado + '</select>' +
+        '</div>' +
+
+        '<div class="campo" id="caja-sub"' + (b.estado === "en_transito" ? "" : " hidden") + '>' +
+          '<label for="subestado">Detalle del estado en Tránsito</label>' +
+          '<p class="ayuda">Sin este detalle, "Pendiente en Tránsito" esconde si al ciudadano todavía le toca presentar la solicitud.</p>' +
+          '<select id="subestado">' + opcionesSub + '</select>' +
+        '</div>' +
+
+        '<div class="campo">' +
+          '<label for="proxima">Próxima acción para el ciudadano</label>' +
+          '<p class="ayuda">Una frase, en lenguaje sencillo.</p>' +
+          '<input type="text" id="proxima" value="' + Ui.esc(b.proxima_accion) + '">' +
+        '</div>' +
+
+        '<div class="campo">' +
+          '<label for="nota">5. Escribe la actualización</label>' +
+          '<p class="ayuda">Se agrega al historial del caso. Lo anterior no se borra.</p>' +
+          '<textarea id="nota" placeholder="Ejemplo: el juzgado emitió el oficio de desbloqueo y está listo para ser retirado."></textarea>' +
+        '</div>' +
+
+        '<div class="campo">' +
+          '<label for="fuente">Quién hace esta actualización</label>' +
+          '<select id="fuente">' +
+            '<option value="Juzgado DEMO">Juzgado DEMO</option>' +
+            '<option value="Tránsito DEMO">Tránsito DEMO</option>' +
+          '</select>' +
+        '</div>' +
+
+        '<div id="aviso-levantado"></div>' +
+
+        '<button type="button" class="boton boton--bloque" id="guardar">6. Guardar</button>' +
+        '<div id="resultado" aria-live="polite">' + mensajeGuardado + '</div>' +
+
+        '<details class="desplegable mt">' +
+          '<summary>Ver el historial actual (' + Datos.historialDe(b.id).length + ' eventos)</summary>' +
+          '<div class="desplegable-cuerpo">' +
+            '<ul class="linea">' + Datos.historialDe(b.id).map(function (h, i) {
+              return '<li' + (i === 0 ? ' class="reciente"' : '') + '>' +
+                '<div class="fecha">' + Ui.esc(h.fecha) + '</div>' +
+                '<div class="titulo">' + Ui.esc(h.titulo) + '</div>' +
+                (h.detalle ? '<div class="pequeno suave">' + Ui.esc(h.detalle) + '</div>' : '') +
+                '<span class="fuente">' + Ui.esc(h.fuente) + '</span></li>';
+            }).join("") + '</ul>' +
+          '</div>' +
+        '</details>' +
+      '</div>';
+
+    var campoEstado = document.getElementById("estado");
+    var cajaSub = document.getElementById("caja-sub");
+    var avisoLevantado = document.getElementById("aviso-levantado");
+
+    function revisarEstado() {
+      cajaSub.hidden = (campoEstado.value !== "en_transito");
+      avisoLevantado.innerHTML = (campoEstado.value === "levantado")
+        ? '<div class="aviso"><span class="aviso-icono" aria-hidden="true">●</span><span>' +
+          'Estás marcando el bloqueo como <strong>levantado</strong>. En el mundo real esto solo lo puede hacer ' +
+          'el Departamento de Tránsito al emitir la resolución. Ni el pago de la multa ni la orden del juzgado ' +
+          'producen este estado por sí solos.</span></div>'
+        : "";
+    }
+    campoEstado.addEventListener("change", revisarEstado);
+    revisarEstado();
+
+    document.getElementById("guardar").addEventListener("click", function () {
+      var resultado = document.getElementById("resultado");
+      var nota = document.getElementById("nota").value.trim();
+      var proxima = document.getElementById("proxima").value.trim();
+
+      if (!nota) {
+        mensajeGuardado = "";
+        resultado.innerHTML = '<div class="error"><span aria-hidden="true">⚠</span><span>Escribe la actualización antes de guardar. Es lo que verá el ciudadano en su historial.</span></div>';
+        document.getElementById("nota").focus();
+        return;
+      }
+      if (!proxima) {
+        mensajeGuardado = "";
+        resultado.innerHTML = '<div class="error"><span aria-hidden="true">⚠</span><span>Escribe cuál es la próxima acción para el ciudadano.</span></div>';
+        document.getElementById("proxima").focus();
+        return;
+      }
+
+      var r = Datos.actualizarBloqueo(abierto, {
+        estado: campoEstado.value,
+        subestado: document.getElementById("subestado") ? document.getElementById("subestado").value : "",
+        proxima_accion: proxima,
+        nota: nota,
+        fuente: document.getElementById("fuente").value
+      });
+
+      if (!r.ok) {
+        mensajeGuardado = "";
+        resultado.innerHTML = '<div class="error"><span aria-hidden="true">⚠</span><span>' + Ui.esc(r.error) + '</span></div>';
+        return;
+      }
+
+      mensajeGuardado = '<div class="exito"><span aria-hidden="true">✓</span><span>' +
+        'Guardado. El caso quedó en "' + Ui.esc(Ui.textoEstado(r.bloqueo)) + '" y se agregó un evento al historial. ' +
+        'El ciudadano lo verá al actualizar su pantalla.</span></div>';
+
+      /* Redibujamos para que la lista y el historial muestren lo nuevo.
+         El mensaje se vuelve a pintar porque vive fuera del HTML. */
+      pintarLista();
+    });
+  }
+
+  document.getElementById("reiniciar").addEventListener("click", function () {
+    Datos.reiniciar();
+    abierto = "";
+    mensajeGuardado = "";
+    pintarLista();
+    document.getElementById("aviso-reinicio").innerHTML =
+      '<div class="exito mt"><span aria-hidden="true">✓</span><span>Datos restablecidos. La demostración vuelve a empezar desde cero.</span></div>';
+  });
+
+  pintarLista();
+})();
+</script>
+
+</body>
+</html>

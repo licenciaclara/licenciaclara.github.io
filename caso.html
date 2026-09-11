@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detalle del bloqueo de licencia · Licencia Clara</title>
+<link rel="stylesheet" href="css/estilos.css">
+<style>
+  .codigo {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #EEF1F4; border: 1px solid var(--borde);
+    border-radius: 6px; padding: 2px 8px; font-size: .92em;
+  }
+  .razon {
+    background: #F4F6F8; border-left: 4px solid var(--borde-fuerte);
+    border-radius: 0 var(--radio-chico) var(--radio-chico) 0;
+    padding: 12px 14px; margin: 0 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="barra no-imprimir">
+  <div class="barra-interna">
+    <a class="marca" href="mi-licencia.html">
+      <span class="marca-icono" aria-hidden="true">LC</span>
+      Licencia Clara
+    </a>
+    <div class="barra-derecha" id="barra-derecha"></div>
+  </div>
+</header>
+
+<main class="contenedor" id="contenido">
+  <div id="cargando" class="cargando">Cargando el bloqueo…</div>
+  <div id="pagina" hidden></div>
+</main>
+
+<footer class="pie">
+  <div class="pie-interna">
+    <p class="sin-margen"><strong>Licencia Clara</strong> · Demostración con datos ficticios.
+    La orientación de esta pantalla es general y no sustituye lo que te indique el juzgado.</p>
+    <ul>
+      <li><a href="mi-licencia.html">Mi licencia</a></li>
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="orientacion.html">Orientación y fuentes</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function () {
+  var codigo = Ui.parametro("caso");
+
+  /* Un bloqueo de licencia es información personal: solo se muestra con
+     la sesión abierta y solo si pertenece a esa persona. Consultar una placa
+     NO da acceso a esta pantalla. */
+  var ciudadano = Sesion.exigir();
+  if (!ciudadano) return;
+
+  Ui.pintarBarraCiudadano(ciudadano);
+
+  var b = codigo ? Datos.bloqueoPorId(codigo) : null;
+
+  /* --- Errores comprensibles, no pantallas en blanco ------------------ */
+  if (!b) {
+    mostrar(
+      '<a class="volver no-imprimir" href="mi-licencia.html"><span aria-hidden="true">←</span> Volver a mi licencia</a>' +
+      '<div class="vacio"><div class="vacio-icono" aria-hidden="true">?</div>' +
+      '<p><strong>No encontramos ese bloqueo.</strong></p>' +
+      '<p class="pequeno">Puede que el enlace esté incompleto. Vuelve a tu licencia y ábrelo desde la lista.</p>' +
+      '<a class="boton mt" href="mi-licencia.html">Volver a mi licencia</a></div>');
+    return;
+  }
+  if (b.ciudadano_id !== ciudadano.id) {
+    mostrar(
+      '<a class="volver no-imprimir" href="mi-licencia.html"><span aria-hidden="true">←</span> Volver a mi licencia</a>' +
+      '<div class="vacio"><div class="vacio-icono" aria-hidden="true">!</div>' +
+      '<p><strong>Ese bloqueo no corresponde a la persona que ingresó.</strong></p>' +
+      '<p class="pequeno">Por privacidad solo puedes ver los bloqueos de tu propia licencia.</p>' +
+      '<a class="boton mt" href="mi-licencia.html">Ver mi licencia</a></div>');
+    return;
+  }
+
+  var muni     = Datos.municipalidadPorId(b.municipalidad_id);
+  var juzgado  = Datos.juzgadoPorId(b.juzgado_id);
+  var guia     = Datos.guiaPorId(b.guia_id);
+  var historia = Datos.historialDe(b.id);
+  var sub      = (b.estado === "en_transito") ? Ui.subestado(b.subestado) : null;
+  var responsable = Datos.responsableDe(b);
+
+  var html = "";
+
+  html += '<a class="volver no-imprimir" href="mi-licencia.html"><span aria-hidden="true">←</span> Volver a mi licencia</a>';
+  html += '<div class="mb no-imprimir">' + Ui.servicio("licencia") + '</div>';
+
+  /* ============ 1. Lo primero que se ve: qué hacer y quién actúa ====== */
+
+  html +=
+    '<h1 class="sin-margen">' + Ui.esc(muni.nombre) + '</h1>' +
+    '<p class="pequeno suave">Bloqueo de licencia <span class="codigo">' + Ui.esc(b.id) + '</span></p>' +
+    '<div class="accion-ahora ' + Ui.claseAccion(b) + '">' +
+      '<div class="etiqueta">' + (b.estado === "levantado" ? "Situación" : "Qué tienes que hacer ahora") + '</div>' +
+      '<p class="frase">' + Ui.esc(b.proxima_accion) + '</p>' +
+      '<p class="quien">Le toca a: <strong>' + Ui.esc(responsable) + '</strong></p>' +
+    '</div>';
+
+  /* Estado, con el subestado siempre visible cuando existe. */
+  html +=
+    '<div class="tarjeta">' +
+      '<div class="chips">' + Ui.chipEstado(b) + '</div>' +
+      (sub ? '<p class="mt sin-margen"><strong>' + Ui.esc(sub.etiqueta) + '</strong></p>' : '') +
+      (b.detalle ? '<p class="pequeno suave mt sin-margen">' + Ui.esc(b.detalle) + '</p>' : '') +
+    '</div>';
+
+  /* ================================ 2. Detalle del bloqueo =========== */
+
+  html +=
+    '<div class="tarjeta">' +
+      '<h2>Detalle del bloqueo</h2>' +
+      '<p class="paso-etiqueta">Por qué existe este bloqueo</p>' +
+      '<p class="razon">' + Ui.esc(b.razon) + '</p>' +
+      '<dl class="datos mt">' +
+        '<div><dt>Municipalidad</dt><dd>' + Ui.esc(muni.nombre) + '</dd></div>' +
+        '<div><dt>Juzgado que lo originó</dt><dd>' + Ui.esc(juzgado.nombre) + '</dd></div>' +
+        '<div><dt>Fecha de registro</dt><dd>' + Ui.esc(b.fecha_registro) + '</dd></div>' +
+        '<div><dt>Última actualización</dt><dd>' + Ui.esc(b.ultima_actualizacion) + '</dd></div>' +
+      '</dl>' +
+    '</div>';
+
+  /* ======================== 2b. Multa relacionada (si existe) ======== */
+  /* Solo si el bloqueo la enlaza explícitamente. Un bloqueo sin multa no
+     muestra ni suma dinero. */
+  var relacionada = b.multa_id ? Datos.multaPorId(b.multa_id) : null;
+  if (relacionada) {
+    html +=
+      '<div class="tarjeta">' +
+        '<h2>Multa relacionada con este bloqueo</h2>' +
+        '<p class="pequeno suave">Es un registro distinto del bloqueo: la multa es del vehículo ' +
+          Ui.placa(relacionada.multa.tipo_placa, relacionada.multa.placa) + '.</p>' +
+        Ui.tarjetaMulta(relacionada) +
+        '<p class="pequeno suave mt">Monto base según el Reglamento de Tránsito. Multa ficticia: no es una deuda real ' +
+          'y no incluye descuentos, intereses ni recargos.</p>' +
+        '<div class="aviso mt"><span class="aviso-icono" aria-hidden="true">●</span><span>' +
+          '<strong>Pagar esta multa no levanta el bloqueo por sí sola.</strong> ' +
+          'El bloqueo lo levanta el Departamento de Tránsito cuando recibe la orden del juzgado y resuelve la solicitud.' +
+        '</span></div>' +
+      '</div>';
+  } else {
+    html +=
+      '<p class="pequeno suave">Este bloqueo no tiene una multa relacionada en los datos de la demostración. ' +
+      'No todo bloqueo lleva multa, y un bloqueo por sí solo no es un monto a pagar.</p>';
+  }
+
+  /* ================================ 3. Cómo resolverlo =============== */
+
+  html += '<h2 class="mt2">' + Ui.esc(guia.titulo) + '</h2>';
+  html += '<div class="aviso aviso--neutro mb"><span class="aviso-icono" aria-hidden="true">●</span>' +
+          '<span>Orientación general basada en información pública. <strong>No es una resolución legal sobre tu caso.</strong> ' +
+          'Lo que te indique el juzgado tiene prioridad sobre esta guía.</span></div>';
+
+  html += '<ol class="pasos">' + guia.pasos.map(paso).join("") + '</ol>';
+
+  /* ========================= 4. Preparar mi visita =================== */
+
+  var llevar = [];
+  guia.pasos.forEach(function (p, i) {
+    if (i === 0 && p.que_llevar) {
+      p.que_llevar.forEach(function (x) { if (llevar.indexOf(x) === -1) llevar.push(x); });
+    }
+  });
+  if (llevar.length > 0) {
+    html +=
+      '<div class="tarjeta">' +
+        '<h3>Preparar mi visita</h3>' +
+        '<p class="pequeno suave">Lo que necesitas para el paso 1. Puedes marcar lo que ya tengas listo.</p>' +
+        '<div>' + llevar.map(function (x, i) {
+          return '<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--borde);cursor:pointer">' +
+                 '<input type="checkbox" style="width:22px;height:22px;min-height:22px;flex:0 0 auto;margin-top:2px">' +
+                 '<span>' + Ui.esc(x) + '</span></label>';
+        }).join("") + '</div>' +
+        '<button type="button" class="boton boton--secundario boton--bloque mt no-imprimir" id="imprimir">Imprimir o guardar este caso</button>' +
+      '</div>';
+  }
+
+  /* =============================== 5. Contacto ======================= */
+
+  html += '<h2 class="mt2">Contacto</h2>' + tarjetaContacto(muni, juzgado);
+
+  /* =============================== 6. Historial ====================== */
+
+  html +=
+    '<h2 class="mt2">Qué se ha hecho hasta ahora</h2>' +
+    '<div class="tarjeta">' +
+      '<ul class="linea">' + historia.map(function (h, i) { return evento(h, i === 0); }).join("") + '</ul>' +
+    '</div>';
+
+  html += '<div class="mt2 no-imprimir">' + Ui.avisoDemo() + '</div>';
+
+  mostrar(html);
+
+  var botonImprimir = document.getElementById("imprimir");
+  if (botonImprimir) botonImprimir.addEventListener("click", function () { window.print(); });
+
+  /* ============================================== Piezas de la vista == */
+
+  function mostrar(contenido) {
+    document.getElementById("pagina").innerHTML = contenido;
+    document.getElementById("cargando").hidden = true;
+    document.getElementById("pagina").hidden = false;
+  }
+
+  function paso(p, i) {
+    var actual = (i === 0);
+    var cuerpo = "";
+
+    cuerpo += '<p class="sin-margen">' + Ui.esc(p.detalle) + '</p>';
+
+    if (p.aviso) {
+      cuerpo += '<div class="aviso mt"><span class="aviso-icono" aria-hidden="true">●</span><span>' + Ui.esc(p.aviso) + '</span></div>';
+    }
+    if (p.que_llevar && p.que_llevar.length) {
+      cuerpo += '<p class="paso-etiqueta">Qué llevar</p><ul>' +
+                p.que_llevar.map(function (x) { return '<li>' + Ui.esc(x) + '</li>'; }).join("") + '</ul>';
+    }
+    if (p.donde) {
+      cuerpo += '<p class="paso-etiqueta">A dónde ir o qué canal usar</p><p class="sin-margen">' + donde(p.donde) + '</p>';
+    }
+    if (p.pago) {
+      cuerpo += '<p class="paso-etiqueta">Qué pago corresponde</p><p class="sin-margen">' + Ui.esc(p.pago) + '</p>';
+    }
+    if (p.documento) {
+      cuerpo += '<p class="paso-etiqueta">Qué documento debes obtener</p><p class="sin-margen">' + Ui.esc(p.documento) + '</p>';
+    }
+    if (p.verificacion) {
+      cuerpo += '<p class="paso-etiqueta">Cómo se verifica</p><p class="sin-margen">' + Ui.esc(p.verificacion) + '</p>';
+    }
+    if (p.fuente_id) {
+      var f = Datos.fuentePorId(p.fuente_id);
+      if (f) {
+        cuerpo += '<p class="pequeno suave mt sin-margen">Fuente: <a href="' + Ui.esc(f.url) +
+                  '" target="_blank" rel="noopener">' + Ui.esc(f.entidad) + '</a> · consultado el ' + Ui.esc(f.fecha_consulta) + '.</p>';
+      }
+    }
+
+    return '<li><details class="paso' + (actual ? " paso--actual" : "") + '"' + (actual ? " open" : "") + '>' +
+             '<summary>' + Ui.esc(p.titulo) +
+               (actual ? ' <span class="marca-actual">Empieza aquí</span>' : '') +
+             '</summary>' +
+             '<div class="paso-cuerpo">' + cuerpo + '</div>' +
+           '</details></li>';
+  }
+
+  function donde(clave) {
+    if (clave === "juzgado") {
+      return Ui.esc(juzgado.nombre) + '. ' +
+             (juzgado.direccion ? Ui.esc(juzgado.direccion) : "Dirección pendiente de verificar.") +
+             (juzgado.horario ? ' ' + Ui.esc(juzgado.horario) : ' <strong>Confirma el horario antes de ir.</strong>') +
+             ' Los datos completos están en la sección <strong>Contacto</strong> de esta página.';
+    }
+    if (clave === "municipalidad") {
+      return Ui.esc(muni.nombre) + '. Cajas municipales o bancos autorizados. ' +
+             (muni.consulta_multas_url
+               ? 'Consulta en línea: <a href="' + Ui.esc(muni.consulta_multas_url) + '" target="_blank" rel="noopener">' + Ui.esc(muni.consulta_multas_url) + '</a>'
+               : '');
+    }
+    if (clave === "transito") {
+      return 'Departamento de Tránsito de la Policía Nacional Civil. 4a calle 6-17, zona 1, Guatemala. Teléfono 2220-5383. ' +
+             'Trámites en línea: <a href="https://transito.gob.gt/tramites-en-linea/" target="_blank" rel="noopener">transito.gob.gt/tramites-en-linea</a>.';
+    }
+    return "";
+  }
+
+  function tarjetaContacto(muni, juz) {
+    var partes = "";
+
+    partes += '<div class="contacto-dato">' +
+      '<div class="rotulo">Entidad</div><div class="valor">' + Ui.esc(muni.nombre) + '</div></div>';
+    partes += '<div class="contacto-dato">' +
+      '<div class="rotulo">Juzgado</div><div class="valor">' + Ui.esc(juz.nombre) + '</div></div>';
+
+    /* El teléfono directo del juzgado y el conmutador de la municipalidad
+       son cosas distintas. Mostrarlos juntos evita que alguien llame a un
+       lugar donde no le pueden responder por su expediente. */
+    partes += '<div class="contacto-dato"><div class="rotulo">Teléfono directo del juzgado</div><div class="valor">' +
+      (juz.telefono ? Ui.esc(juz.telefono) : '<span class="pendiente">Información pendiente de verificar</span>') +
+      '</div></div>';
+
+    partes += '<div class="contacto-dato"><div class="rotulo">Conmutador de la municipalidad</div><div class="valor">' +
+      (muni.telefono_general
+        ? Ui.esc(muni.telefono_general) + (juz.extension ? ' <span class="pequeno suave" style="font-weight:400">· pide la extensión ' + Ui.esc(juz.extension) + '</span>' : '')
+        : '<span class="pendiente">Información pendiente de verificar</span>') +
+      '</div></div>';
+
+    partes += '<div class="contacto-dato"><div class="rotulo">Dirección</div><div class="valor">' +
+      (juz.direccion ? Ui.esc(juz.direccion) : '<span class="pendiente">Información pendiente de verificar</span>') +
+      '</div></div>';
+
+    partes += '<div class="contacto-dato"><div class="rotulo">Horario</div><div class="valor">' +
+      (juz.horario ? Ui.esc(juz.horario) : '<span class="pendiente">Información pendiente de verificar</span>') +
+      '</div></div>';
+
+    /* Botones: si el dato no está verificado, el botón queda deshabilitado. */
+    var botones = "";
+
+    botones += juz.telefono
+      ? '<a class="boton" href="tel:' + Ui.esc(juz.telefono.replace(/[^0-9+]/g, "")) + '">Llamar al juzgado</a>'
+      : '<span class="boton" aria-disabled="true">Llamar al juzgado</span>';
+
+    if (muni.telefono_general) {
+      botones += '<a class="boton' + (juz.telefono ? ' boton--secundario' : '') + '" href="tel:' +
+        Ui.esc(muni.telefono_general.replace(/[^0-9+]/g, "")) + '">Llamar a la municipalidad</a>';
+    }
+
+    botones += juz.direccion
+      ? '<a class="boton boton--secundario" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' +
+        encodeURIComponent(juz.direccion + ", Guatemala") + '">Ver ubicación</a>'
+      : '<span class="boton boton--secundario" aria-disabled="true">Ver ubicación</span>';
+
+    botones += juz.sitio_url
+      ? '<a class="boton boton--secundario" target="_blank" rel="noopener" href="' + Ui.esc(juz.sitio_url) + '">Visitar sitio oficial</a>'
+      : '<span class="boton boton--secundario" aria-disabled="true">Visitar sitio oficial</span>';
+
+    var faltantes = [];
+    if (!juz.telefono)  faltantes.push("el teléfono directo del juzgado");
+    if (!juz.direccion) faltantes.push("la dirección");
+    if (!juz.horario)   faltantes.push("el horario");
+
+    var fuente = Datos.fuentePorId(juz.fuente_id);
+
+    return '<div class="tarjeta">' +
+      partes +
+      '<div class="botones botones--fila mt no-imprimir">' + botones + '</div>' +
+      (faltantes.length
+        ? '<p class="nota-verificacion"><strong>No pudimos verificar ' + faltantes.join(" ni ") + ' en una fuente oficial.</strong> ' +
+          'Por eso ese dato aparece sin confirmar y su botón está desactivado: preferimos no darte información que podría hacerte perder un viaje.</p>'
+        : '') +
+      (juz.nota_verificacion ? '<p class="nota-verificacion">' + Ui.esc(juz.nota_verificacion) + '</p>' : '') +
+      (fuente
+        ? '<p class="nota-verificacion">Fuente: <a href="' + Ui.esc(fuente.url) + '" target="_blank" rel="noopener">' +
+          Ui.esc(fuente.entidad) + ' — ' + Ui.esc(fuente.titulo) + '</a>. Consultado el ' + Ui.esc(fuente.fecha_consulta) + '.</p>'
+        : '') +
+    '</div>';
+  }
+
+  function evento(h, reciente) {
+    return '<li' + (reciente ? ' class="reciente"' : '') + '>' +
+      '<div class="fecha">' + Ui.esc(h.fecha) + '</div>' +
+      '<div class="titulo">' + Ui.esc(h.titulo) + '</div>' +
+      (h.detalle ? '<div class="pequeno suave">' + Ui.esc(h.detalle) + '</div>' : '') +
+      '<span class="fuente">' + Ui.esc(h.fuente) + '</span>' +
+    '</li>';
+  }
+})();
+</script>
+
+</body>
+</html>
